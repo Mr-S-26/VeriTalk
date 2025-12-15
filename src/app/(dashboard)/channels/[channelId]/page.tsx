@@ -119,7 +119,7 @@ export default function ChannelPage() {
     initData()
   }, [channelId, supabase])
 
-  // 2. Realtime Subscription
+  // 2. Realtime Subscription (FIXED)
   useEffect(() => {
     const channel = supabase
       .channel(`chat:${channelId}`)
@@ -149,7 +149,13 @@ export default function ChannelPage() {
             profiles: userData ? (userData as Profile) : { full_name: 'Unknown', avatar_url: '' },
           }
 
-          setMessages((current) => [...current, newMsg])
+          // FIX: Check for duplicates before adding
+          setMessages((current) => {
+            if (current.some((msg) => msg.id === newMsg.id)) {
+              return current
+            }
+            return [...current, newMsg]
+          })
         }
       )
       .subscribe()

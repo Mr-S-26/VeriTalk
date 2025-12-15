@@ -18,7 +18,7 @@ interface Member {
   full_name: string
   avatar_url: string | null
   current_status: UserStatus
-  role?: string // Placeholder if you add roles later
+  role: string // Fixed: Made required and actually used
 }
 
 // --- Components ---
@@ -121,12 +121,12 @@ export default function TeamOverviewPage() {
         return
       }
 
-      // B. Fetch Members
+      // B. Fetch Members (FIXED: Added 'role' to selection)
       const { data: memberData } = await supabase
         .from('workspace_members')
         .select(`
           user_id,
-          profiles:user_id ( id, full_name, avatar_url, current_status )
+          profiles:user_id ( id, full_name, avatar_url, current_status, role )
         `)
         .eq('workspace_id', workspaceId)
 
@@ -136,11 +136,11 @@ export default function TeamOverviewPage() {
           id: m.user_id,
           full_name: m.profiles?.full_name || 'Unknown User',
           avatar_url: m.profiles?.avatar_url || null,
-          current_status: m.profiles?.current_status || 'offline'
+          current_status: m.profiles?.current_status || 'offline',
+          // FIXED: Map the role properly, default to 'Team Member' if missing
+          role: m.profiles?.role || 'Team Member'
         }))
         
-        // Filter out myself from the view? Optional.
-        // setMembers(formatted.filter(m => m.id !== user.id))
         setMembers(formatted)
       }
     } catch (error) {
@@ -167,7 +167,8 @@ export default function TeamOverviewPage() {
                     ...member, 
                     current_status: payload.new.current_status,
                     avatar_url: payload.new.avatar_url || member.avatar_url,
-                    full_name: payload.new.full_name || member.full_name
+                    full_name: payload.new.full_name || member.full_name,
+                    role: payload.new.role || member.role // Listen for role changes too
                   }
                 : member
             )
@@ -183,7 +184,8 @@ export default function TeamOverviewPage() {
 
   // 4. Filtering
   const filteredMembers = members.filter(m => 
-    m.full_name.toLowerCase().includes(searchQuery.toLowerCase())
+    m.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    m.role.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   return (
@@ -276,7 +278,10 @@ export default function TeamOverviewPage() {
                      <h3 className="font-semibold text-neutral-900 dark:text-neutral-100 group-hover:text-indigo-600 transition-colors">
                        {member.full_name}
                      </h3>
-                     <p className="text-xs text-neutral-500 dark:text-neutral-400">Full Stack Developer</p>
+                     {/* FIXED: Dynamic Role Display */}
+                     <p className="text-xs text-neutral-500 dark:text-neutral-400 capitalize">
+                        {member.role.replace('_', ' ')}
+                     </p>
                    </div>
                 </div>
 
