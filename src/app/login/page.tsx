@@ -118,7 +118,7 @@ export default function LoginPage() {
          </div>
 
          <div className="relative z-10 text-xs text-neutral-500 flex items-center gap-4">
-            <span>© 2024 StaffSync Inc.</span>
+            <span>© 2025 VeriTalk Inc.</span>
             <a href="#" className="hover:text-neutral-300 transition-colors">Privacy</a>
             <a href="#" className="hover:text-neutral-300 transition-colors">Terms</a>
          </div>
