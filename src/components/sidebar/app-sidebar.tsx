@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image' // <--- NEW IMPORT
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useNotification } from '@/components/providers/notification-provider'
 import { 
   Hash, Shield, Clock, Calendar, LogOut, Users, 
   CheckSquare, FileBarChart, MessageSquare, Video, 
-  Settings, Layers, Command, type LucideIcon 
+  Settings, Layers, type LucideIcon 
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -35,7 +36,6 @@ const NotificationBadge = ({ count }: { count: number }) => {
   )
 }
 
-// FIX: Replaced 'any' with 'LucideIcon'
 const SidebarItem = ({ 
   icon: Icon, 
   label, 
@@ -147,10 +147,21 @@ export default function AppSidebar() {
       
       {/* Brand Header */}
       <div className="h-14 flex items-center px-5 border-b border-neutral-100 dark:border-neutral-800">
-        <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-bold text-lg tracking-tight">
-          <Command className="w-5 h-5" />
-          <span>VeriTalk</span>
-        </div>
+        <Link href="" className="flex items-center gap-3">
+          {/* LOGO IMAGE */}
+          <div className="relative w-12 h-12 shrink-0">
+             <Image 
+               src="/veritalk.png" // Ensure 'logo.png' exists in your /public folder
+               alt="VeriTalk Logo" 
+               fill
+               className="object-contain"
+               priority
+             />
+          </div>
+          <span className="text-indigo-600 dark:text-indigo-400 font-bold text-lg tracking-tight">
+            VeriTalk
+          </span>
+        </Link>
       </div>
 
       {/* Scrollable Content */}
@@ -207,7 +218,6 @@ export default function AppSidebar() {
                   <SidebarItem label="Manage Employees" href="/manage-employees" icon={Users} isActive={pathname === '/manage-employees'} />
                   <SidebarItem label="Team Reports" href="/team-reports" icon={FileBarChart} isActive={pathname === '/team-reports'} />
                   <SidebarItem label="Messages" href="/messages" icon={MessageSquare} isActive={pathname === '/messages'} badgeCount={unreadCount} />
-                  {/* Note: I've updated the link href to match the Team Overview page we created earlier */}
                   <SidebarItem label="Team Overview" href="/team-overview" icon={Shield} isActive={pathname === '/team-overview'} />
                 </>
               ) : (

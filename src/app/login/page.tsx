@@ -2,9 +2,10 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image' // <--- NEW IMPORT
 import { createClient } from '@/lib/supabase/client'
 import { 
-  Loader2, Command, ArrowRight, Check, 
+  Loader2, ArrowRight, Check, 
   Eye, EyeOff, Github, AlertCircle 
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -34,7 +35,6 @@ export default function LoginPage() {
           data: {
             full_name: email.split('@')[0],
             avatar_url: '',
-            // Role empty -> Onboarding
           },
         },
       })
@@ -57,7 +57,6 @@ export default function LoginPage() {
         setMessage({ type: 'error', text: error.message })
         setLoading(false)
       } else {
-        // Login Successful -> Check Role
         if (data.user) {
           const { data: profile } = await supabase
             .from('profiles')
@@ -65,7 +64,6 @@ export default function LoginPage() {
             .eq('id', data.user.id)
             .single()
 
-          // Redirect Logic
           if (!profile || !profile.role) {
             router.push('/onboarding')
           } else if (profile.role === 'client') {
@@ -88,8 +86,17 @@ export default function LoginPage() {
          {/* Background pattern */}
          <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,_var(--tw-gradient-stops))] from-indigo-900/20 via-neutral-900 to-neutral-900 pointer-events-none" />
          
-         <div className="relative z-10 flex items-center gap-2 text-white font-bold text-xl tracking-tight">
-             <Command className="w-6 h-6 text-indigo-500" />
+         <div className="relative z-10 flex items-center gap-3 text-white font-bold text-xl tracking-tight">
+             {/* LOGO IMAGE REPLACEMENT */}
+             <div className="relative w-12 h-12 shrink-0">
+               <Image 
+                 src="/veritalk.png" // Ensure this file exists in public/
+                 alt="VeriTalk Logo" 
+                 fill
+                 className="object-contain bg-white rounded-full"
+                 priority
+               />
+             </div>
              VeriTalk
          </div>
 
@@ -131,7 +138,6 @@ export default function LoginPage() {
             </div>
 
             <form onSubmit={handleAuth} className="space-y-5">
-               
                {/* Email Input */}
                <div className="space-y-1.5">
                   <label className="text-sm font-medium leading-none text-neutral-700 dark:text-neutral-300">
@@ -195,7 +201,6 @@ export default function LoginPage() {
                   {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   {isSignUp ? 'Sign Up with Email' : 'Sign In'}
                </button>
-
             </form>
 
             <div className="relative">
