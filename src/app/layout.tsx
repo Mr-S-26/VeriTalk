@@ -8,7 +8,7 @@ import { CallProvider } from '@/components/providers/call-provider'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'StaffSync',
+  title: 'VeriTalk',
   description: 'Workforce Management',
 }
 

@@ -90,7 +90,7 @@ export default function LoginPage() {
          
          <div className="relative z-10 flex items-center gap-2 text-white font-bold text-xl tracking-tight">
              <Command className="w-6 h-6 text-indigo-500" />
-             StaffSync
+             VeriTalk
          </div>
 
          <div className="relative z-10 max-w-lg">
