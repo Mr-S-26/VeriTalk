@@ -5,13 +5,37 @@ import { createClient } from '@/lib/supabase/client'
 import { useNotification } from '@/components/providers/notification-provider'
 import { 
   User, Camera, Bell, Save, Loader2, 
-  Volume2, VolumeX, Check, Briefcase, Mail 
+  Volume2, VolumeX, Check, Briefcase, Mail, 
+  Sun, Moon // <-- NEW IMPORTS
 } from 'lucide-react'
-import { cn } from '@/lib/utils' // Ensure you have this utility from the previous step
+import { cn } from '@/lib/utils' 
+
+// Function to handle the dark mode class on the <html> tag
+const applyDarkModeClass = (isDark: boolean) => {
+    if (typeof window !== 'undefined') {
+        document.documentElement.classList.toggle('dark', isDark)
+    }
+}
+
+// Function to get initial dark mode state from local storage
+const getInitialDarkMode = (): boolean => {
+    if (typeof window === 'undefined') return false
+    
+    const savedMode = localStorage.getItem('staffsync_dark_mode')
+    if (savedMode !== null) {
+        return savedMode === 'true'
+    }
+    // Fallback: Check user's system preference
+    return window.matchMedia('(prefers-color-scheme: dark)').matches
+}
+
 
 export default function SettingsPage() {
   const supabase = createClient()
   const { soundEnabled, toggleSound } = useNotification()
+  
+  // NEW STATE: Dark Mode
+  const [darkMode, setDarkMode] = useState(getInitialDarkMode)
   
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -21,13 +45,13 @@ export default function SettingsPage() {
   const [userId, setUserId] = useState<string | null>(null)
   const [fullName, setFullName] = useState('')
   const [role, setRole] = useState('')
-  const [email, setEmail] = useState('') // Added email for display context
+  const [email, setEmail] = useState('') 
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // 1. Fetch Profile
+  // 1. Initial Profile Fetch
   useEffect(() => {
     const getProfile = async () => {
       try {
@@ -57,7 +81,20 @@ export default function SettingsPage() {
     getProfile()
   }, [supabase])
 
-  // 2. Handle Image Upload
+  // 2. Apply Dark Mode on Mount and State Change
+  useEffect(() => {
+    applyDarkModeClass(darkMode)
+  }, [darkMode])
+  
+  // 3. Toggle Dark Mode Function
+  const toggleDarkMode = () => {
+      const newMode = !darkMode
+      setDarkMode(newMode)
+      localStorage.setItem('staffsync_dark_mode', String(newMode))
+  }
+
+
+  // 4. Handle Image Upload
   const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
       if (!event.target.files || event.target.files.length === 0) return
@@ -95,7 +132,7 @@ export default function SettingsPage() {
     }
   }
 
-  // 3. Save Profile Info
+  // 5. Save Profile Info
   const handleSaveProfile = async () => {
     if (!userId) return
     setSaving(true)
@@ -280,13 +317,54 @@ export default function SettingsPage() {
                 </div>
             </div>
         </section>
+        
+        {/* SECTION 3: Display Preferences (NEW SECTION) */}
+        <section className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl overflow-hidden shadow-sm">
+            <div className="p-6 border-b border-neutral-200 dark:border-neutral-800">
+              <h2 className="text-base font-semibold text-neutral-900 dark:text-neutral-50 mb-1 flex items-center gap-2">
+                  <Sun className="w-4 h-4 text-indigo-500" />
+                  Display Preferences
+              </h2>
+              <p className="text-sm text-neutral-500">Change your app&apos;s theme.</p>
+            </div>
 
-        {/* SECTION 3: Preferences */}
+            <div className="p-6">
+              <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                      <div className="font-medium text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
+                          Dark Mode
+                          {darkMode ? <Moon className="w-4 h-4 text-indigo-400" /> : <Sun className="w-4 h-4 text-amber-500" />}
+                      </div>
+                      <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                          Switch to the dark theme for a better viewing experience at night.
+                      </p>
+                  </div>
+                  
+                  <button 
+                      onClick={toggleDarkMode}
+                      className={cn(
+                        "peer inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-neutral-950",
+                        darkMode ? "bg-indigo-600" : "bg-neutral-200 dark:bg-neutral-700"
+                      )}
+                  >
+                      <span className={cn(
+                        "pointer-events-none block h-5 w-5 rounded-full bg-white shadow-lg ring-0 transition-transform flex items-center justify-center",
+                        darkMode ? "translate-x-5" : "translate-x-0"
+                      )}>
+                        {darkMode ? <Moon className="w-3 h-3 text-neutral-800" /> : <Sun className="w-3 h-3 text-amber-500" />}
+                      </span>
+                  </button>
+              </div>
+            </div>
+        </section>
+
+
+        {/* SECTION 4: Notifications (Renumbered) */}
         <section className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl overflow-hidden shadow-sm">
             <div className="p-6 border-b border-neutral-200 dark:border-neutral-800">
               <h2 className="text-base font-semibold text-neutral-900 dark:text-neutral-50 mb-1 flex items-center gap-2">
                   <Bell className="w-4 h-4 text-indigo-500" />
-                  Preferences
+                  Notification Preferences
               </h2>
               <p className="text-sm text-neutral-500">Customize your notification experience.</p>
             </div>
@@ -299,7 +377,7 @@ export default function SettingsPage() {
                           {soundEnabled ? <Volume2 className="w-4 h-4 text-emerald-500" /> : <VolumeX className="w-4 h-4 text-neutral-400" />}
                       </div>
                       <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                          Play a sound when you receive a new direct message.
+                          Play a sound when you receive a new direct message or an incoming call.
                       </p>
                   </div>
                   

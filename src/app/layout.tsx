@@ -22,11 +22,13 @@ export default function RootLayout({
       <body className={inter.className}>
         <TimerProvider>
           {/* NEST NOTIFICATION PROVIDER HERE */}
+          <CallProvider>
           <NotificationProvider>
-            <CallProvider>
+            
             {children}
-            </CallProvider>
+            
           </NotificationProvider>
+          </CallProvider>
         </TimerProvider>
       </body>
     </html>

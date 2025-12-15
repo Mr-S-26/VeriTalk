@@ -8,7 +8,10 @@ export default function DashboardLayout({
   return (
     // 1. Use h-dvh for mobile address bar compatibility
     // 2. Use neutral background for visual depth (light/dark mode ready)
-    <div className="flex h-dvh w-full bg-neutral-50 dark:bg-neutral-950">
+    <div className="flex h-dvh w-full 
+    bg-neutral-50 
+    dark:bg-neutral-950 
+    !bg-neutral-50 !dark:bg-neutral-950">
       
       {/* Persistent Sidebar */}
       {/* Ensure your Sidebar handles its own z-index/width */}
@@ -25,6 +28,7 @@ export default function DashboardLayout({
         transition-all 
         duration-300 
         ease-in-out
+        bg-neutral-50 dark:bg-neutral-950
       ">
         {children}
       </main>

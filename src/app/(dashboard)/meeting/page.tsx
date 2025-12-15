@@ -5,13 +5,15 @@ import { createClient } from '@/lib/supabase/client'
 import TeamMeeting from '@/components/meeting/team-meeting'
 import { 
   Video, Lock, ShieldCheck, ArrowLeft, 
-  Loader2, Copy, Check, type LucideIcon 
+  Loader2, Copy, Check, type LucideIcon,
+  Users, WifiOff // Added WifiOff for better error display
 } from 'lucide-react'
 import { useSearchParams, useRouter } from 'next/navigation'
 
 // --- Components ---
 
 const LoadingScreen = () => (
+// ... (LoadingScreen remains the same)
   <div className="h-screen w-full bg-neutral-950 flex flex-col items-center justify-center text-white space-y-6">
     <div className="relative">
       <div className="absolute inset-0 bg-indigo-500/20 blur-xl rounded-full animate-pulse" />
@@ -24,7 +26,19 @@ const LoadingScreen = () => (
   </div>
 )
 
-// FIX: Replaced 'any' with 'LucideIcon'
+const ErrorScreen = ({ message }: { message: string }) => (
+  <div className="h-screen w-full flex flex-col items-center justify-center bg-neutral-950 text-rose-500 gap-4 p-6 text-center">
+    <div className="p-4 bg-rose-500/10 rounded-full">
+        <WifiOff className="w-8 h-8" />
+    </div>
+    <div>
+        <h3 className="text-lg font-bold text-neutral-200">Room Unavailable</h3>
+        <p className="text-sm text-neutral-500 mt-1 max-w-xs mx-auto">{message}</p>
+    </div>
+  </div>
+)
+
+
 const HeaderBadge = ({ label, icon: Icon }: { label: string, icon: LucideIcon }) => (
   <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-neutral-900 border border-neutral-800 text-xs font-medium text-neutral-400">
     <Icon className="w-3.5 h-3.5" />
@@ -38,10 +52,10 @@ function MeetingContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const customRoom = searchParams.get('room')
-  const mode = searchParams.get('mode') // 'video' or 'audio'
+  const mode = searchParams.get('mode') 
 
   const [user, setUser] = useState<{ name: string, id: string, email: string } | null>(null)
-  const [roomName, setRoomName] = useState<string | null>(null)
+  const [roomName, setRoomName] = useState<string | 'error' | null>(null) // State can be string, 'error', or null
   const [isCopied, setIsCopied] = useState(false)
   
   const supabase = createClient()
@@ -69,32 +83,42 @@ function MeetingContent() {
 
       // 2. Determine Room Name
       if (customRoom) {
-        // CASE A: Private 1:1 Call (passed via URL)
+        // CASE A: Private 1:1 Call
         setRoomName(customRoom)
       } else {
-        // CASE B: General Meeting (Fetch Workspace ID)
-        // We default to the first workspace they are a member of for the "General" room
+        // CASE B: General Meeting 
         const { data: member } = await supabase
           .from('workspace_members')
           .select('workspace_id')
           .eq('user_id', user.id)
           .maybeSingle()
         
-        if (member) setRoomName(member.workspace_id)
+        // --- FIX: Check for Null explicitly ---
+        if (member?.workspace_id) {
+          setRoomName(member.workspace_id)
+        } else {
+          console.error("User is not a member of any workspace or workspace_id is null.")
+          setRoomName('error') // Set an error state
+        }
       }
     }
     init()
   }, [supabase, customRoom, router])
 
   const copyRoomId = () => {
-    if (roomName) {
+    if (roomName && roomName !== 'error') {
         navigator.clipboard.writeText(window.location.href)
         setIsCopied(true)
         setTimeout(() => setIsCopied(false), 2000)
     }
   }
 
-  if (!user || !roomName) return <LoadingScreen />
+  // Handle Loading/Error States:
+  if (!user || roomName === null) return <LoadingScreen />
+  
+  if (roomName === 'error') {
+    return <ErrorScreen message="This user is not associated with any workspace to join the General Room. Please contact your administrator." />
+  }
 
   const isPrivate = !!customRoom
 

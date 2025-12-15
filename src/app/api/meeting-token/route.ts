@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/client'
+import { createClient } from '@/lib/supabase/server' // Changed from client to server
 import jwt from 'jsonwebtoken'
 
 // Define expected body shape
@@ -24,11 +24,12 @@ export async function POST(request: Request) {
 
     // 2. Parse & Validate Request Body
     const body: MeetingRequestBody = await request.json()
-    const { userName, email } = body 
+    // FIX 1: Add roomName to destructuring
+    const { roomName, userName, email } = body 
 
-    if (!userName || !email) {
+    if (!roomName || !userName || !email) {
       return NextResponse.json(
-        { error: 'Missing user details' }, 
+        { error: 'Missing required meeting or user details' }, 
         { status: 400 }
       )
     }
@@ -77,12 +78,15 @@ export async function POST(request: Request) {
           recording: true,
           transcription: true,
           "outbound-call": false 
-        }
+        },
+        // IMPORTANT: The room name is specified in the 'context' block for Jitsi
+        room: roomName
       },
       aud: "jitsi",
       iss: "chat",
       sub: JAAS_APP_ID,
-      room: "*", 
+      // IMPORTANT: The room name is specified at the top level for JWT validation
+      room: roomName, 
       exp: Math.round(exp.getTime() / 1000),
       nbf: Math.round(nbf.getTime() / 1000)
     }
@@ -93,7 +97,8 @@ export async function POST(request: Request) {
       header: { 
         kid: JAAS_KEY_ID,
         typ: 'JWT',
-        alg: 'RS256' // <--- FIX: Added this to satisfy TypeScript
+        // FIX: Add 'alg' to the header object to satisfy TypeScript
+        alg: 'RS256' 
       }
     })
 

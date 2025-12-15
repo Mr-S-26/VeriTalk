@@ -172,6 +172,7 @@ export default function DirectMessagePage({ params }: PageProps) {
   const handleCall = (type: 'audio' | 'video') => {
     if (!currentUser || !userId || !profile) return
     initiateCall(userId, profile.full_name, type === 'video')
+    
   }
 
   // --- Render ---

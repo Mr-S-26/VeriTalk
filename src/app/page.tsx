@@ -5,5 +5,5 @@ export default function Home() {
   // The middleware (which we can add later) usually handles protection.
   // Once logged in, the login page redirects back here, so we redirect to dashboard.
   
-  redirect('/god-mode')
+  redirect('/team-overview')
 }
